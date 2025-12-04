@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Forecast Dashboard</title>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      background: #ffffff;
+      padding: 20px 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+      align-items: flex-end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      min-width: 180px;
+    }
+
+    .field label {
+      font-size: 14px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .field select,
+    .field input {
+      padding: 7px 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .field input[readonly] {
+      background: #fafafa;
+    }
+
+    .chart-container {
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .filters {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Product Sales & Forecast</h1>
+
+    <!-- Filters / Inputs -->
+    <div class="filters">
+      <div class="field">
+        <label for="productSelect">Product Name</label>
+        <select id="productSelect"></select>
+      </div>
+
+      <div class="field">
+        <label for="colorSelect">Color</label>
+        <select id="colorSelect"></select>
+      </div>
+
+      <div class="field">
+        <label for="totalSold">Total Sold Qty</label>
+        <input type="text" id="totalSold" readonly />
+      </div>
+
+      <div class="field">
+        <label for="forecastValue">Forecasting Value (Next Month)</label>
+        <input type="text" id="forecastValue" readonly />
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-container">
+      <canvas id="forecastChart" height="120"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // ==========================
+    // DUMMY DATA – REPLACE WITH YOUR REAL DATA
+    // Structure:
+    // data[productName][color] = {
+    //   totalSold: Number,
+    //   forecastSeries: [values for upcoming periods],
+    //   labels: ["Month1", "Month2", ...]
+    // }
+    // ==========================
+    const productData = {
+      "Kanchipuram Silk Saree": {
+        "Red": {
+          totalSold: 320,
+          forecastSeries: [55, 60, 70, 75, 80, 90],
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+        },
+        "Blue": {
+          totalSold: 280,
+          forecastSeries: [45, 50, 58, 65, 72, 78],
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+        }
+      },
+      "Cotton Saree": {
+        "Green": {
+          totalSold: 410,
+          forecastSeries: [65, 70, 75, 85, 92, 100],
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+        },
+        "Yellow": {
+          totalSold: 365,
+          forecastSeries: [50, 55, 63, 70, 82, 95],
+          labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+        }
+      }
+    };
+
+    const productSelect = document.getElementById("productSelect");
+    const colorSelect = document.getElementById("colorSelect");
+    const totalSoldInput = document.getElementById("totalSold");
+    const forecastValueInput = document.getElementById("forecastValue");
+    const ctx = document.getElementById("forecastChart").getContext("2d");
+
+    let forecastChart = null;
+
+    // Initialize dropdowns
+    function initSelectors() {
+      // Populate Product dropdown
+      const products = Object.keys(productData);
+      products.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        productSelect.appendChild(opt);
+      });
+
+      // Populate Color dropdown based on first product
+      updateColorOptions();
+
+      // Initial UI + chart update
+      updateUI();
+    }
+
+    // Update color options when product changes
+    function updateColorOptions() {
+      const selectedProduct = productSelect.value;
+      const colors = Object.keys(productData[selectedProduct]);
+
+      // Clear existing options
+      colorSelect.innerHTML = "";
+
+      colors.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        colorSelect.appendChild(opt);
+      });
+    }
+
+    // Update numeric fields + chart
+    function updateUI() {
+      const selectedProduct = productSelect.value;
+      const selectedColor = colorSelect.value;
+
+      if (!selectedProduct || !selectedColor) return;
+
+      const record = productData[selectedProduct][selectedColor];
+
+      // Update Total Sold Qty
+      totalSoldInput.value = record.totalSold;
+
+      // ForecastValue – take last value in forecastSeries as "next month"
+      const forecastSeries = record.forecastSeries;
+      const latestForecast = forecastSeries[forecastSeries.length - 1];
+      forecastValueInput.value = latestForecast;
+
+      // Update chart
+      updateChart(record.labels, forecastSeries, selectedProduct, selectedColor);
+    }
+
+    // Create / Update Chart.js chart
+    function updateChart(labels, data, productName, color) {
+      if (forecastChart) {
+        forecastChart.destroy();
+      }
+
+      forecastChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `Forecast - ${productName} (${color})`,
+            data: data,
+            tension: 0.3,
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: true
+            },
+            tooltip: {
+              enabled: true
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "Period"
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: "Qty"
+              },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Event listeners
+    productSelect.addEventListener("change", () => {
+      updateColorOptions();
+      updateUI();
+    });
+
+    colorSelect.addEventListener("change", () => {
+      updateUI();
+    });
+
+    // Init on load
+    document.addEventListener("DOMContentLoaded", initSelectors);
+  </script>
+</body>
+</html>
