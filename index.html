@@ -3,20 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sales</title>
+    <title>RAMRAJ Sales</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
+            padding: 30px;
             background: #FFFFFF;
-            color: green;
+            color: #333;
         }
-        h1 { font-size: 3em; }
+        h1 { 
+            font-size: 2.5em; 
+            color: green;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .search-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        #productInput {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        #productList {
+            width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            margin: 5px auto;
+            display: none;
+            background: white;
+            text-align: left;
+        }
+        .product-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        .product-item:hover {
+            background: #f0f0f0;
+        }
+        table {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background: white;
+            display: none;
+        }
+        th {
+            background: #f5f5f5;
+            color: black;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            border: 1px solid #ddd;
+        }
+        td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
     </style>
 </head>
 <body>
     <h1>RAMRAJ</h1>
-    <p></p>
+    
+    <div class="search-container">
+        <input type="text" id="productInput" placeholder="Type Product Name..." autocomplete="off">
+        <div id="productList"></div>
+    </div>
+
+    <table id="productTable">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>UnApproved Qty</th>
+                <th>Approved Qty</th>
+                <th>Partial Qty</th>
+                <th>Total Pending Qty</th>
+                <th>Stock</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+    </table>
+
+    <script>
+        // Sample product data
+        const products = {
+            'Dhoti White': { unapproved: 50, approved: 120, partial: 30, totalPending: 200, stock: 500 },
+            'Dhoti Cream': { unapproved: 40, approved: 100, partial: 20, totalPending: 160, stock: 400 },
+            'Shirt White': { unapproved: 60, approved: 140, partial: 35, totalPending: 235, stock: 600 },
+            'Shirt Blue': { unapproved: 45, approved: 110, partial: 25, totalPending: 180, stock: 450 },
+            'Kurta Black': { unapproved: 30, approved: 80, partial: 15, totalPending: 125, stock: 300 }
+        };
+
+        const productNames = Object.keys(products);
+        const input = document.getElementById('productInput');
+        const list = document.getElementById('productList');
+        const table = document.getElementById('productTable');
+        const tbody = document.getElementById('tableBody');
+
+        input.addEventListener('input', function() {
+            const value = this.value.toLowerCase();
+            list.innerHTML = '';
+            
+            if (value) {
+                const filtered = productNames.filter(name => 
+                    name.toLowerCase().includes(value)
+                );
+                
+                if (filtered.length > 0) {
+                    list.style.display = 'block';
+                    filtered.forEach(name => {
+                        const div = document.createElement('div');
+                        div.className = 'product-item';
+                        div.textContent = name;
+                        div.onclick = () => selectProduct(name);
+                        list.appendChild(div);
+                    });
+                } else {
+                    list.style.display = 'none';
+                }
+            } else {
+                list.style.display = 'none';
+            }
+        });
+
+        function selectProduct(name) {
+            input.value = name;
+            list.style.display = 'none';
+            
+            const data = products[name];
+            tbody.innerHTML = `
+                <tr>
+                    <td>${name}</td>
+                    <td>${data.unapproved}</td>
+                    <td>${data.approved}</td>
+                    <td>${data.partial}</td>
+                    <td>${data.totalPending}</td>
+                    <td>${data.stock}</td>
+                </tr>
+            `;
+            table.style.display = 'table';
+        }
+
+        // Hide list when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !list.contains(e.target)) {
+                list.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
