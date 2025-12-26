@@ -21,11 +21,11 @@ jobs:
       - name: Install Python Libraries
         run: |
           pip install --upgrade pip
-          # பிழையைத் தவிர்க்கத் தேவையான அனைத்து லைப்ரரிகளும் இங்கே உள்ளன
-          pip install importlib-metadata moviepy==1.0.3 gTTS manim
+          # பிழைகளைத் தவிர்க்கத் தேவையான லைப்ரரிகள்
+          pip install importlib-metadata moviepy manim gTTS
 
       - name: Render Video
-        # உங்கள் மெயின் பைத்தான் கோப்பு பெயர் 'main.py' ஆக இருப்பதை உறுதி செய்யவும்
+        # -qm என்பது medium quality (வேகமாக முடியும்)
         run: manim -qm main.py LavatharAnimation
 
       - name: Upload Result
