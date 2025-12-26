@@ -6,10 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # இதுவும் புதிய பதிப்பு
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5 # இதுவும் புதிய பதிப்பு
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -20,13 +20,15 @@ jobs:
 
       - name: Install Python Libraries
         run: |
+          pip install --upgrade pip
+          pip install importlib-metadata # இந்த வரி புதிய பிழையைச் சரிசெய்யும்
           pip install manim moviepy gTTS
 
       - name: Render Video
         run: manim -qm main.py LavatharAnimation
 
       - name: Upload Result
-        uses: actions/upload-artifact@v4 # இங்கேதான் v3-க்கு பதில் v4 மாற்றப்பட்டுள்ளது
+        uses: actions/upload-artifact@v4 # இது பழைய v3 பிழையைச் சரிசெய்யும்
         with:
           name: lavathar-final-video
           path: media/videos/main/720p30/LavatharAnimation.mp4
