@@ -1,0 +1,32 @@
+name: Render Lavathar Video
+on: [push] # நீங்கள் எந்த மாற்றத்தைச் செய்து சேமித்தாலும் வீடியோ ரன் ஆகும்
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libcairo2-dev libpango1.0-dev freeglut3-dev mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev
+
+      - name: Install Python Libraries
+        run: |
+          pip install manim moviepy gTTS
+
+      - name: Render Video
+        run: manim -qm main.py LavatharAnimation # உங்கள் மெயின் பைத்தான் கோப்பு பெயர் main.py ஆக இருக்க வேண்டும்
+
+      - name: Upload Result
+        uses: actions/upload-artifact@v3
+        with:
+          name: lavathar-final-video
+          path: media/videos/main/720p30/LavatharAnimation.mp4
