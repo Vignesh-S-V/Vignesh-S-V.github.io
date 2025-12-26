@@ -1,4 +1,4 @@
-name: power
+name: Render Lavathar Video
 on: [push]
 
 jobs:
@@ -24,11 +24,11 @@ jobs:
           pip install importlib-metadata moviepy manim gTTS
 
       - name: Render Video
-        # QM (Medium Quality) - சிறந்த வீடியோ தரம் கிடைக்கும்
-        run: manim -qm main.py LavatharEpic
+        # -qm (Medium Quality) - சிறந்த அனிமேஷன் விவரங்கள் தெரியும்
+        run: manim -qm main.py LavatharFullEpic
 
       - name: Upload Result
         uses: actions/upload-artifact@v4
         with:
-          name: lavathar-movie-file
-          path: media/videos/main/720p30/LavatharEpic.mp4
+          name: lavathar-final-epic
+          path: media/videos/main/720p30/LavatharFullEpic.mp4
